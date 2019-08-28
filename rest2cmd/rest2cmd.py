@@ -7,6 +7,8 @@ import string
 import random
 import shlex
 import subprocess
+# import socketio
+import requests
 from traceback import format_exc
 from flask import Flask, request, jsonify
 
@@ -23,7 +25,7 @@ print('HTTP_MAP_PATH', HTTP_MAP_PATH)
 
 with open(HTTP_MAP_PATH, 'r') as f:
     try:
-        HTTP_MAP = yaml.load(f)
+        HTTP_MAP = yaml.load(f, yaml.Loader)
     except yaml.YAMLError as exc:
         print('Problem loading yaml http map file', file=sys.stderr)
         print(exc, file=sys.stderr)
@@ -35,7 +37,7 @@ assert not isinstance('HTTP_MAP', dict), (
 )
 
 
-def execute(executable, command, plugin_path):
+def execute(executable, command, plugin_path, stream=None):
     try:
         cmd = '%s %s' % (executable, command)
         parts = shlex.split(cmd)
@@ -53,6 +55,39 @@ def execute(executable, command, plugin_path):
         # wait for the process to terminate
         # while proc.poll() is None:
         #     time.sleep(0.2)
+        if stream != None:
+            print("in stream")
+            if stream['room'] != None and stream['url'] != None:
+                stream_data('TESTING SENDING',
+                            stream['room'], url=stream['url'])
+                while True:
+                    err = proc.stderr.readline().decode('utf8')
+                    out = proc.stdout.readline().decode('utf8')
+
+                    is_error = proc.returncode != 0 and proc.returncode != None
+                    print("{} ------ {}".format(is_error,
+                                                proc.returncode), file=sys.stderr)
+                    if out == '' and proc.poll() is not None:
+                        # print("out is empty")
+                        break
+                    elif is_error and err != None:
+                        stream_data(err, stream['room'], url=stream['url'])
+                        return {
+                            'is_error': is_error,
+                            'content': err
+                        }
+                    else:
+                        print("out: %s" % out, file=sys.stderr)
+                        stream_data(out, stream['room'], url=stream['url'])
+                        # yield out
+                return {
+                    'is_error': is_error,
+                    'content': '=====END OF STREAM=====' if proc.poll() != None else None
+                }
+            else:
+                print('Haven\'t received room ID and/or stream URL.',
+                      file=sys.stderr)
+
         out, err = proc.communicate()
         # wrap response
         is_error = proc.returncode != 0
@@ -67,6 +102,22 @@ def execute(executable, command, plugin_path):
             'is_error': True,
             'content': format_exc().split('\n')
         }
+
+
+def stream_data(out, room, url=None, sio=None):
+    if sio != None:
+        print(out, file=sys.stderr)
+        # output = {'message': out, 'room': room}
+        # sio.emit('push', output, '/notification')
+    elif url != None:
+        print('http://{}/push/{}'.format(url, room), file=sys.stderr)
+        sent = requests.post(
+            'http://{}/push/{}'.format(url, room), json={'message': out},)
+
+        print(sent.content, file=sys.stderr)
+    else:
+        print('No valid parameters passed!', file=sys.stderr)
+        raise NameError('No valid parameters passed!')
 
 
 def format_status(output):
@@ -106,6 +157,14 @@ def route_handler(path, method, config):
     def _call(**url_args):
         x_groups = request.headers.get('X-GROUPS', '').split(',')
         groups = config.get('groups', None)
+        room_id = request.headers.get('STREAM_ROOM', None)
+        url = request.headers.get('STREAM_URL', None)
+        print("{}:{}".format(url, room_id), file=sys.stderr)
+        stream = None
+        if room_id != None and url != None:
+            stream = {'url': url, 'room': room_id}
+            print("Ready to stream!", file=sys.stderr)
+
         if groups is not None:
             intersection = set(x_groups) & set(groups)
             if len(intersection) == 0:
@@ -123,7 +182,12 @@ def route_handler(path, method, config):
         command_parts = [p % payload for p in config['command'].split()]
         command = ' '.join(command_parts)
         print('Executing: %s', command, file=sys.stderr)
-        output = execute(config['executable'], command, config['plugin_path'])
+        output = execute(
+            config['executable'],
+            command,
+            config['plugin_path'],
+            stream=stream
+        )
         print('Got output: %s', output, file=sys.stderr)
         content = format_output(output, config.get('is_json', False))
         status = format_status(output)
