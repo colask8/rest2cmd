@@ -209,4 +209,4 @@ for method, routes in HTTP_MAP.items():
 print('Starting app ..', file=sys.stderr)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
