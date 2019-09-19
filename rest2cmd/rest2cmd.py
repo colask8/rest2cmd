@@ -63,12 +63,11 @@ def execute(executable, command, plugin_path, stream=None):
                 while True:
                     err = proc.stderr.readline().decode('utf8')
                     out = proc.stdout.readline().decode('utf8')
-
+                    
                     is_error = proc.returncode != 0 and proc.returncode != None
-                    print("{} ------ {}".format(is_error,
-                                                proc.returncode), file=sys.stderr)
+                    print("{} ------ {}".format(is_error, proc.returncode), file=sys.stderr)
                     if out == '' and proc.poll() is not None:
-                        # print("out is empty")
+                    # print("out is empty")
                         break
                     elif is_error and err != None:
                         stream_data(err, stream['room'], url=stream['url'])
@@ -85,8 +84,7 @@ def execute(executable, command, plugin_path, stream=None):
                     'content': '=====END OF STREAM=====' if proc.poll() != None else None
                 }
             else:
-                print('Haven\'t received room ID and/or stream URL.',
-                      file=sys.stderr)
+                print('Haven\'t received room ID and/or stream URL.', file=sys.stderr)
 
         out, err = proc.communicate()
         # wrap response
@@ -110,16 +108,15 @@ def stream_data(out, room, url=None, sio=None):
         # output = {'message': out, 'room': room}
         # sio.emit('push', output, '/notification')
     elif url != None:
-        print('http://{}/push/{}'.format(url, room), file=sys.stderr)
-        sent = requests.post(
-            'http://{}/push/{}'.format(url, room), json={'message': out},)
+        # print('http://{}/push/{}'.format(url, room), file=sys.stderr)
+        sent = requests.post('http://{}/push/{}'.format(url, room), json={'message': out},)
 
         print(sent.content, file=sys.stderr)
     else:
-        print('No valid parameters passed!', file=sys.stderr)
+        print('No valid parameters passed!', file=sys.stderr) 
         raise NameError('No valid parameters passed!')
 
-
+        
 def format_status(output):
     if output['is_error']:
         return 400
@@ -183,9 +180,9 @@ def route_handler(path, method, config):
         command = ' '.join(command_parts)
         print('Executing: %s', command, file=sys.stderr)
         output = execute(
-            config['executable'],
-            command,
-            config['plugin_path'],
+            config['executable'], 
+            command, 
+            config['plugin_path'], 
             stream=stream
         )
         print('Got output: %s', output, file=sys.stderr)
@@ -209,4 +206,4 @@ for method, routes in HTTP_MAP.items():
 print('Starting app ..', file=sys.stderr)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run()
