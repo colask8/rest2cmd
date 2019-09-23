@@ -9,7 +9,7 @@ RUN yum install -y which net-tools curl wget vim git
 RUN yum install -y python36
 
 # install pip
-RUN curl -fsSL https://bootstrap.pypa.io/get-pip.py | python36 -
+RUN curl -fsSL https://bootstrap.pypa.io/get-pip.py | python3 -
 RUN pip3 install --upgrade pip
 
 # ENV GUNICORN_VERSION 19.9.0
@@ -28,13 +28,13 @@ RUN mkdir -p ${APP_ROOT}
 RUN pip3 install Flask==${FLASK_VERSION}
 RUN pip3 install PyYaml==5.1b3 requests
 
-# RUN pip install rest2cmd
+RUN pip install rest2cmd-stream
 
 WORKDIR ${APP_ROOT}
 VOLUME ${APP_ROOT}
 
 EXPOSE 5000 8000
 
-# CMD /usr/local/bin/gunicorn --config gunicorn.conf rest2cmd:app
-CMD ["python3.6", "./rest2cmd/rest2cmd.py"]
+CMD /usr/local/bin/gunicorn --config gunicorn.conf rest2cmd:app
+# CMD ["python3.6", "./rest2cmd/rest2cmd.py"]
 #curl -H 'STREAM_URL: 172.17.0.1:5000' -H 'STREAM_ROOM: 111' 0.0.0.0:5000/all/prod
