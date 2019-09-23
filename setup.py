@@ -12,22 +12,22 @@ os.chdir(
     os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir))
 )
 
-VERSION = '0.0.6'
+VERSION = '0.0.7'
 
 setup(
-    name='rest2cmd',
+    name='rest2cmd_stream',
     version=VERSION,
     packages=[
-        'rest2cmd',
+        'rest2cmd_stream',
     ],
     include_package_data=True,
-    license='MIT License',
+    license='MIT License (c) Bojan Radojevic (techstreets)',
     description='Simple http rest api to cmd line interface.',
     long_description=README,
-    url='https://github.com/techstreets/rest2cmd.git',
-    download_url='https://github.com/techstreets/rest2cmd/tarball/%s' % VERSION,
-    author='Bojan Radojevic',
-    author_email='bradojevic@gmail.com',
+    url='https://github.com/colask8/rest2cmd_stream.git',
+    download_url='https://github.com/colask8/rest2cmd_stream/tarball/%s' % VERSION,
+    author='Stojan Veljkovic',
+    author_email='cola14@gmail.com',
     install_requires=[
         'flask==1.0.2',
         'gunicorn==19.9.0',
