@@ -35,6 +35,6 @@ VOLUME ${APP_ROOT}
 
 EXPOSE 5000 8000
 
-CMD /usr/local/bin/gunicorn --config gunicorn.conf rest2cmd:app
+CMD /usr/local/bin/gunicorn --config gunicorn.conf rest2cmd_stream:app
 # CMD ["python3.6", "./rest2cmd/rest2cmd.py"]
 #curl -H 'STREAM_URL: 172.17.0.1:5000' -H 'STREAM_ROOM: 111' 0.0.0.0:5000/all/prod

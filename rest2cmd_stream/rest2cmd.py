@@ -108,8 +108,12 @@ def stream_data(out, room, url=None, sio=None):
         # output = {'message': out, 'room': room}
         # sio.emit('push', output, '/notification')
     elif url != None:
+        if url.startswith('https'):
+            sent = requests.post(
+                '{}/push/{}'.format(url, room), json={'message': out}, verify=False)
         # print('http://{}/push/{}'.format(url, room), file=sys.stderr)
-        sent = requests.post('http://{}/push/{}'.format(url, room), json={'message': out},)
+        else:
+            sent = requests.post('{}/push/{}'.format(url, room), json={'message': out},)
 
         print(sent.content, file=sys.stderr)
     else:
