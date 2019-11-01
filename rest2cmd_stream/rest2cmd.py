@@ -60,17 +60,16 @@ def execute(executable, command, plugin_path, stream=None):
             if stream['room'] != None and stream['url'] != None:
                 stream_data('TESTING SENDING',
                             stream['room'], url=stream['url'])
-
+                is_error = proc.returncode != 0 and proc.returncode != None
                 while True:
                     output = proc.stdout.readline().decode('utf8')
-                    err = proc.stderr.readline().decode('utf8')
+
                     if proc.poll() is not None and output == '':
                         break
                     if output:
-                        stream_data(output.strip(), '111', 'http://172.17.0.1:5000')
+                        stream_data(output.strip(),
+                                    stream['room'], url=stream['url'])
                         print(output.strip())
-                    elif is_error and err != None:
-                        stream_data(err, stream['room'], url=stream['url'])
                 return {
                     'is_error': is_error,
                     'content': '=====END OF STREAM=====' if proc.poll() != None else None
