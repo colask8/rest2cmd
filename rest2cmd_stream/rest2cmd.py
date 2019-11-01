@@ -60,29 +60,44 @@ def execute(executable, command, plugin_path, stream=None):
             if stream['room'] != None and stream['url'] != None:
                 stream_data('TESTING SENDING',
                             stream['room'], url=stream['url'])
+
                 while True:
+                    output = proc.stdout.readline().decode('utf8')
                     err = proc.stderr.readline().decode('utf8')
-                    out = proc.stdout.readline().decode('utf8')
-                    
-                    is_error = proc.returncode != 0 and proc.returncode != None
-                    print("{} ------ {}".format(is_error, proc.returncode), file=sys.stderr)
-                    if out == '' and proc.poll() is not None:
-                    # print("out is empty")
+                    if proc.poll() is not None and output == '':
                         break
+                    if output:
+                        stream_data(output.strip(), '111', 'http://172.17.0.1:5000')
+                        print(output.strip())
                     elif is_error and err != None:
                         stream_data(err, stream['room'], url=stream['url'])
-                        return {
-                            'is_error': is_error,
-                            'content': err
-                        }
-                    else:
-                        print("out: %s" % out, file=sys.stderr)
-                        stream_data(out, stream['room'], url=stream['url'])
-                        # yield out
                 return {
                     'is_error': is_error,
                     'content': '=====END OF STREAM=====' if proc.poll() != None else None
                 }
+                # while True:
+                #     err = proc.stderr.readline().decode('utf8')
+                #     out = proc.stdout.readline().decode('utf8')
+                    
+                #     is_error = proc.returncode != 0 and proc.returncode != None
+                #     print("{} ------ {}".format(is_error, proc.returncode), file=sys.stderr)
+                #     if out == '' and proc.poll() is not None:
+                #     # print("out is empty")
+                #         break
+                #     elif is_error and err != None:
+                #         stream_data(err, stream['room'], url=stream['url'])
+                #         return {
+                #             'is_error': is_error,
+                #             'content': err
+                #         }
+                #     else:
+                #         print("out: %s" % out, file=sys.stderr)
+                #         stream_data(out, stream['room'], url=stream['url'])
+                #         # yield out
+                # return {
+                #     'is_error': is_error,
+                #     'content': '=====END OF STREAM=====' if proc.poll() != None else None
+                # }
             else:
                 print('Haven\'t received room ID and/or stream URL.', file=sys.stderr)
 
